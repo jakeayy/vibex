@@ -11,6 +11,7 @@ import experiments from "./experiments";
 import noUpsells from "./noUpsells";
 import mediaDownloader from "./mediaDownloader";
 import betterBlockedWords from "./betterBlockedWords";
+import performance from "./performance";
 
 // Add new plugins here.
 export const builtinPlugins: PluginDef<any>[] = [
@@ -25,4 +26,5 @@ export const builtinPlugins: PluginDef<any>[] = [
     noUpsells,
     mediaDownloader,
     betterBlockedWords,
+    performance,
 ];

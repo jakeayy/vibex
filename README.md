@@ -62,6 +62,7 @@ src/
 | NoUpsells | Hides Premium / Verified upsells, promo banners, app-load paywalls and "Boost" nudges | Turns off only switches that *display* upsells; paid features (`subscriptions_feature_*`, long video, …) are untouched |
 | MediaDownloader | "Download photo / video / GIF" in every post's Share menu, original quality | Adds an item to X's share-menu item table; respects creators who disabled downloads (setting) |
 | BetterBlockedWords | Hides or blocks the author of posts containing your X muted words (one action for all) and your own phrases or regexes (an action per phrase); counts posts hidden and users blocked | Filters X's timeline pipeline using posts from API responses and X's own post store (the home timeline restored from X's saved session is rechecked and pruned with X's `REMOVE_TWEETS` action). Reads muted words through X's API client; blocks through X's own Users `block` action, one every 3 s, max 50 per page load, never accounts you follow |
+| Performance | Smoother scrolling (on by default) | Turns on two optimizations X wrote but ships disabled: `timeline_scroll_pointer_events_optimization` (no hover style recalcs while scrolling) and `responsive_web_offscreen_video_scroller_removal_enabled` (off-screen videos stop measuring their position on every scroll) |
 | FeatureSwitchesAPI | Core: one patch on X's FeatureSwitches class, shared by all switch-overriding plugins | `core/featureSwitches.ts` → `addSwitchResolver()` |
 | ConsoleShortcuts | `vx` helpers in DevTools | — |
 
