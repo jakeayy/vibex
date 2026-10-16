@@ -8,7 +8,13 @@ export function addStyle(id: string, css: string) {
         styleEls.set(id, el);
     }
     el.textContent = css;
-    if (!el.isConnected) (document.head ?? document.documentElement).append(el);
+    const parent = document.head ?? document.documentElement;
+    if (parent) {
+        if (!el.isConnected) parent.append(el);
+    } else {
+        // Plugins that start at document-start run before <html> exists.
+        onReady(() => { if (styleEls.get(id) === el && !el!.isConnected) document.head.append(el!); });
+    }
     return el;
 }
 

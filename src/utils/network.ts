@@ -104,8 +104,11 @@ function install() {
         const u = toURL(url);
         if (u && observers.size && !observed.has(this)) {
             observed.add(this);
-            // Re-read the URL at load time: the same XHR object can be reused.
-            this.addEventListener("load", () => {
+            // readystatechange (DONE) fires before load, so observers see the
+            // response before any onload handler, whenever it was attached.
+            // Re-read the URL each time: the same XHR object can be reused.
+            this.addEventListener("readystatechange", () => {
+                if (this.readyState !== XMLHttpRequest.DONE || !this.status) return;
                 const target = meta.get(this)?.url ?? toURL(this.responseURL);
                 if (!target || !observers.size) return;
                 notify(target, this.status, () => {

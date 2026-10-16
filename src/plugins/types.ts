@@ -51,6 +51,8 @@ export interface PluginDef<S extends Record<string, PluginSetting> = Record<stri
      */
     startEarly?: boolean;
     settings?: S;
+    /** Extra content on the plugin's settings page, above its settings (e.g. live stats). */
+    settingsPanel?: ComponentType;
     /** Static CSS applied while the plugin is enabled. */
     css?: string;
     /** Webpack source patches. Applied at page load only, so toggling needs a reload. */

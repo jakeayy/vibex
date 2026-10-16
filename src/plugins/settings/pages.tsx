@@ -180,6 +180,7 @@ export function PluginPage({ location, match }: RouteProps) {
     const { def, enabled, needsReload } = info;
     const settings = Object.entries(def.settings ?? {});
     const values = Object.fromEntries(settings.map(([k]) => [k, getPluginSetting(def.name, k)]));
+    const Panel = def.settingsPanel;
 
     return (
         <Screen location={location} title={def.name} screenType="secondaryDetail" backLocation={`${BASE}/plugins`}>
@@ -197,6 +198,7 @@ export function PluginPage({ location, match }: RouteProps) {
                 disabled={def.required}
                 onChange={(_, v) => setPluginEnabled(def.name, v)}
             />
+            {Panel && <Panel />}
             {settings.map(([key, setting], i) => {
                 const section = setting.section ?? "Settings";
                 const heading = i === 0 || section !== (settings[i - 1][1].section ?? "Settings");

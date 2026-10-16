@@ -61,6 +61,7 @@ src/
 | Experiments | Browse all of X's feature switches (server default vs. your account) and override them | Overrides through the FeatureSwitchesAPI resolver chain; no descriptions, since X publishes none and community lists only guess from names |
 | NoUpsells | Hides Premium / Verified upsells, promo banners, app-load paywalls and "Boost" nudges | Turns off only switches that *display* upsells; paid features (`subscriptions_feature_*`, long video, …) are untouched |
 | MediaDownloader | "Download photo / video / GIF" in every post's Share menu, original quality | Adds an item to X's share-menu item table; respects creators who disabled downloads (setting) |
+| BetterBlockedWords | Hides or blocks the author of posts containing your X muted words (one action for all) and your own phrases or regexes (an action per phrase); counts posts hidden and users blocked | Filters X's timeline pipeline using posts from API responses and X's own post store (the home timeline restored from X's saved session is rechecked and pruned with X's `REMOVE_TWEETS` action). Reads muted words through X's API client; blocks through X's own Users `block` action, one every 3 s, max 50 per page load, never accounts you follow |
 | FeatureSwitchesAPI | Core: one patch on X's FeatureSwitches class, shared by all switch-overriding plugins | `core/featureSwitches.ts` → `addSwitchResolver()` |
 | ConsoleShortcuts | `vx` helpers in DevTools | — |
 
@@ -91,7 +92,8 @@ Then add it to `src/plugins/index.ts`.
 - `start` and `stop` run live when the user toggles the plugin. Changing a setting restarts the plugin unless that setting has `restartNeeded: true`, which shows a "Reload needed" banner instead.
 - `startEarly: true` starts the plugin at document-start instead of DOMContentLoaded, before X's bundles run (no DOM yet). SponsorBegone uses it so X's very first requests are already intercepted.
 - `addInterceptor()` from `utils/network` hooks every XHR, `fetch` and `sendBeacon` request: rewrite its URL or body, or block it (it then completes locally as an empty 200).
-- `addResponseObserver()` from `utils/network` sees every completed XHR/`fetch` response read-only; `res.json()` parses lazily, so observers that filter by `res.url` first cost nothing.
+- `addResponseObserver()` from `utils/network` sees every completed XHR/`fetch` response read-only, before X's own handlers; `res.json()` parses lazily, so observers that filter by `res.url` first cost nothing.
+- `settingsPanel` adds your own React component to the plugin's settings page, above its settings (BetterBlockedWords shows its counters there).
 - Setting types are `boolean`, `string`, `number`, `select` and `custom` (your own React component that receives `{ value, set }`). The settings page is generated from them. A setting can also take `section` (groups it under a heading) and `disabled(settings)` (greys it out, e.g. under a parent toggle).
 
 ### Webpack patches
