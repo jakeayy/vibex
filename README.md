@@ -6,10 +6,12 @@ A client mod for X (Twitter) web, in the spirit of Vencord. It ships as a single
 
 ```bash
 npm install
-npm run build      # -> dist/vibex.user.js (minified)
+npm run build      # -> dist/vibex.user.js (minified, CSS included)
 npm run watch      # unminified rebuilds while developing
 npm run typecheck
 ```
+
+The build minifies JavaScript with esbuild and every `css` template with [Lightning CSS](https://lightningcss.dev/).
 
 Install `dist/vibex.user.js` in Tampermonkey or Violentmonkey. It must run at `document-start` (the header already asks for this) so the webpack hook goes in before X's bundles execute. Then open **Settings → VibeX** on x.com.
 
@@ -62,13 +64,14 @@ src/
 | NoUpsells | Hides Premium / Verified upsells, promo banners, app-load paywalls and "Boost" nudges | Turns off only switches that *display* upsells; paid features (`subscriptions_feature_*`, long video, …) are untouched |
 | MediaDownloader | "Download photo / video / GIF" in every post's Share menu, original quality | Adds an item to X's share-menu item table; respects creators who disabled downloads (setting) |
 | BetterBlockedWords | Hides or blocks the author of posts containing your X muted words (one action for all) and your own phrases or regexes (an action per phrase); counts posts hidden and users blocked | Filters X's timeline pipeline using posts from API responses and X's own post store (the home timeline restored from X's saved session is rechecked and pruned with X's `REMOVE_TWEETS` action). Reads muted words through X's API client; blocks through X's own Users `block` action, one every 3 s, max 50 per page load, never accounts you follow |
-| Performance | Smoother scrolling (on by default) | Turns on two optimizations X wrote but ships disabled: `timeline_scroll_pointer_events_optimization` (no hover style recalcs while scrolling) and `responsive_web_offscreen_video_scroller_removal_enabled` (off-screen videos stop measuring their position on every scroll) |
+| TwitterFixes | Core: fixes for X's own code. Currently smoother scrolling | Turns on two optimizations X wrote but ships disabled: `timeline_scroll_pointer_events_optimization` (no hover style recalcs while scrolling) and `responsive_web_offscreen_video_scroller_removal_enabled` (off-screen videos stop measuring their position on every scroll). Each can be turned off in its settings |
 | FeatureSwitchesAPI | Core: one patch on X's FeatureSwitches class, shared by all switch-overriding plugins | `core/featureSwitches.ts` → `addSwitchResolver()` |
 | ConsoleShortcuts | `vx` helpers in DevTools | — |
 
 ## Writing a plugin
 
 ```ts
+import { css } from "../utils/css";
 import { definePlugin } from "./types";
 
 export default definePlugin({
@@ -78,7 +81,7 @@ export default definePlugin({
     settings: {
         loud: { type: "boolean", description: "Be loud", default: false },
     },
-    css: `/* applied while enabled */`,
+    css: css`/* applied while enabled */`,
     start({ settings, logger, addStyle, onStop }) {
         logger.info("started, loud =", settings.loud);
         const id = setInterval(() => {}, 1000);
@@ -90,6 +93,7 @@ export default definePlugin({
 
 Then add it to `src/plugins/index.ts`.
 
+- Write stylesheets as `css` tagged templates (`utils/css`), for `css:` and `addStyle()` alike. The build minifies each one with Lightning CSS and drops the tag. Interpolations work, except inside quoted CSS strings: such a template is left unminified.
 - `start` and `stop` run live when the user toggles the plugin. Changing a setting restarts the plugin unless that setting has `restartNeeded: true`, which shows a "Reload needed" banner instead.
 - `startEarly: true` starts the plugin at document-start instead of DOMContentLoaded, before X's bundles run (no DOM yet). SponsorBegone uses it so X's very first requests are already intercepted.
 - `addInterceptor()` from `utils/network` hooks every XHR, `fetch` and `sendBeacon` request: rewrite its URL or body, or block it (it then completes locally as an empty 200).

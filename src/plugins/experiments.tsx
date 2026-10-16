@@ -5,6 +5,7 @@ import { getPluginSetting, isEnabled, setPluginSetting } from "./manager";
 import { useSettingsVersion } from "./hooks";
 import { Description } from "./settings/components";
 import { definePlugin, type CustomSettingApi } from "./types";
+import { css } from "../utils/css";
 
 const NAME = "Experiments";
 const PAGE_SIZE = 50;
@@ -127,7 +128,7 @@ export default definePlugin({
     name: NAME,
     description: "Browse and override X's feature switches (experiments).",
     authors: ["VibeX"],
-    css: `.vx-mono { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 13px !important; overflow-wrap: anywhere; }
+    css: css`.vx-mono { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 13px !important; overflow-wrap: anywhere; }
 .vx-switch-row { border-top: 1px solid var(--vx-border); }`,
     settings: {
         overrides: {

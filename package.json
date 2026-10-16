@@ -13,6 +13,7 @@
   "devDependencies": {
     "@types/react": "^19.3.0",
     "esbuild": "^0.28.2",
+    "lightningcss": "^1.33.0",
     "typescript": "^7.0.2"
   }
 }

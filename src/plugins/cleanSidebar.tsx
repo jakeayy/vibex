@@ -4,6 +4,7 @@ import { getPluginSetting, isEnabled } from "./manager";
 import { useSettingsVersion } from "./hooks";
 import { BooleanItem, Description } from "./settings/components";
 import { definePlugin, type CustomSettingApi } from "./types";
+import { css } from "../utils/css";
 
 const NAME = "CleanSidebar";
 const MORE = "AppTabBar_More_Menu";
@@ -182,6 +183,6 @@ export default definePlugin({
 
     start({ settings, addStyle }) {
         // The floating Grok drawer isn't part of the nav array, so it stays CSS.
-        if (settings.hideGrokDrawer) addStyle('[data-testid="GrokDrawer"] { display: none !important; }');
+        if (settings.hideGrokDrawer) addStyle(css`[data-testid="GrokDrawer"] { display: none !important; }`);
     },
 });

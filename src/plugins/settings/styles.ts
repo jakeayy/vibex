@@ -1,5 +1,7 @@
+import { css } from "../../utils/css";
+
 // Only our own controls need CSS; everything else is X's components.
-export const css = `
+export const styles = css`
 .vx-root {
     font-family: TwitterChirp, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     color: var(--vx-text);

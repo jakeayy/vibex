@@ -2,7 +2,7 @@ import type { ComponentType } from "@vibex/react";
 import { getRouter } from "../../webpack/common";
 import { definePlugin } from "../types";
 import { AboutPage, BASE, HomePage, PluginPage, PluginsPage } from "./pages";
-import { css } from "./styles";
+import { styles } from "./styles";
 
 /** Shape of an entry in X's settings route table (see the patch below). */
 interface SettingsRoute {
@@ -34,7 +34,7 @@ export default definePlugin({
     description: "Adds the VibeX section to X's settings page.",
     authors: ["VibeX"],
     required: true,
-    css,
+    css: styles,
     patches: [
         {
             // X's settings navigation (bundle.Settings) has two variants of the

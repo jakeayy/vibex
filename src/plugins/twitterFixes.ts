@@ -2,12 +2,13 @@ import { addSwitchResolver, withValue } from "../core/featureSwitches";
 import { getPluginSetting, isEnabled } from "./manager";
 import { definePlugin } from "./types";
 
-const NAME = "Performance";
+const NAME = "TwitterFixes";
 const setting = (key: string) => isEnabled(NAME) && !!getPluginSetting(NAME, key);
 
 /*
- * Optimizations X has already written but ships turned off, behind feature
- * switches. Turning the switch on runs X's own code path.
+ * Fixes for X's own code. So far: performance optimizations X has already
+ * written but ships turned off, behind feature switches. Turning the switch on
+ * runs X's own code path.
  */
 const SWITCHES: Record<string, string> = {
     // Timeline: sets pointer-events:none on the list while scrolling (back
@@ -29,17 +30,19 @@ addSwitchResolver((name, result) => {
 
 export default definePlugin({
     name: NAME,
-    description: "Makes scrolling smoother by turning on optimizations X has built but ships disabled.",
+    description: "Fixes for X's own code. Makes scrolling smoother by turning on optimizations X has built but ships disabled.",
     authors: ["VibeX"],
-    enabledByDefault: true,
+    required: true,
     settings: {
         scrollPointerEvents: {
             type: "boolean",
+            section: "Performance",
             description: "Skip hover effects while the timeline is scrolling",
             default: true,
         },
         offscreenVideoListeners: {
             type: "boolean",
+            section: "Performance",
             description: "Stop tracking the position of videos that are off screen",
             default: true,
         },

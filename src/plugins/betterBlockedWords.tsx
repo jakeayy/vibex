@@ -6,6 +6,7 @@ import { Logger } from "../utils/logger";
 import { getPluginSetting, isEnabled } from "./manager";
 import { Button, Description, InfoRow, Text } from "./settings/components";
 import { definePlugin, type CustomSettingApi } from "./types";
+import { css } from "../utils/css";
 
 const NAME = "BetterBlockedWords";
 const logger = new Logger(NAME);
@@ -566,7 +567,7 @@ export default definePlugin({
     description: "Hides or blocks posts that contain your muted words, plus your own phrases and regexes, each with its own action.",
     authors: ["VibeX"],
     startEarly: true,
-    css: `.vx-bbw-rule { grid-template-columns: 1fr auto auto auto; align-items: center; border-top: 1px solid var(--vx-border); }
+    css: css`.vx-bbw-rule { grid-template-columns: 1fr auto auto auto; align-items: center; border-top: 1px solid var(--vx-border); }
 .vx-bbw-rule .vx-select { width: auto; }
 .vx-bbw-check { display: flex; gap: 6px; align-items: center; white-space: nowrap; }
 .vx-bbw-recent { display: flex; justify-content: space-between; gap: 12px; padding: 4px 16px; }

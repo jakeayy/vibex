@@ -1,5 +1,6 @@
 import { getPluginSetting } from "./manager";
 import { definePlugin } from "./types";
+import { css } from "../utils/css";
 
 const NAME = "OldTwitterBranding";
 const setting = (key: string) => !!getPluginSetting(NAME, key);
@@ -182,7 +183,7 @@ export default definePlugin({
 
     start({ settings, addStyle, onStop }) {
         if (settings.blueLogo) {
-            addStyle(`header h1[role="heading"] a[href="/home"] svg { color: ${TWITTER_BLUE} !important; }`);
+            addStyle(css`header h1[role="heading"] a[href="/home"] svg { color: ${TWITTER_BLUE} !important; }`);
         }
         if (!settings.birdLogo) return;
 
