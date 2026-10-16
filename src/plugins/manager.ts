@@ -140,6 +140,19 @@ export function startAll() {
     });
 }
 
+/** Network ruleset id -> whether any enabled plugin wants it on. */
+export function networkRuleState(): Record<string, boolean> {
+    const out: Record<string, boolean> = {};
+    for (const [name, rt] of registry) {
+        for (const [id, wants] of Object.entries(rt.def.networkRules ?? {})) {
+            let on = false;
+            try { on = isEnabled(name) && wants(state(rt.def)); } catch (e) { logger.error(e); }
+            out[id] ||= on;
+        }
+    }
+    return out;
+}
+
 export function listPlugins() {
     return [...registry.values()].map(rt => ({
         def: rt.def,

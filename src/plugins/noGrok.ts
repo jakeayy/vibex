@@ -142,6 +142,7 @@ export default definePlugin({
         },
     },
     startEarly: true,
+    networkRules: { grok: s => !!s.blockGrokRequests },
     patches: [
         {
             // X's timeline entry pipeline (also used by SponsorBegone): filter the

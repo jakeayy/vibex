@@ -1,0 +1,21 @@
+[
+    {
+        "id": 1,
+        "priority": 1,
+        "action": { "type": "block" },
+        "condition": {
+            "requestDomains": ["grok.com", "x.ai"],
+            "initiatorDomains": ["x.com", "twitter.com"],
+            "excludedResourceTypes": ["main_frame"]
+        }
+    },
+    {
+        "id": 2,
+        "priority": 1,
+        "action": { "type": "block" },
+        "condition": {
+            "regexFilter": "^https://(?:api\\.)?(?:x|twitter)\\.com/(?:i/api/)?graphql/[^/]+/grok\\w*(?:\\?|$)",
+            "excludedResourceTypes": ["main_frame"]
+        }
+    }
+]

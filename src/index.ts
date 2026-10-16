@@ -1,4 +1,5 @@
 import { VibeX } from "./api";
+import { initExtensionBridge } from "./core/extensionBridge";
 import { builtinPlugins } from "./plugins";
 import { registerPlugin, startAll, startEarlyPlugins } from "./plugins/manager";
 import { onReady } from "./utils/dom";
@@ -21,6 +22,7 @@ if (window.top !== window) {
     initWebpack();
     initRouter();
     startEarlyPlugins();
+    initExtensionBridge();
     onReady(startAll);
 
     logger.info(`v${VIBEX_VERSION} loaded`);

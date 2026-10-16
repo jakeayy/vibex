@@ -53,6 +53,13 @@ export interface PluginDef<S extends Record<string, PluginSetting> = Record<stri
     settings?: S;
     /** Extra content on the plugin's settings page, above its settings (e.g. live stats). */
     settingsPanel?: ComponentType;
+    /**
+     * Extension builds only: network block rulesets (src/extension/rules/<id>.json)
+     * this plugin turns on, each with a check of the plugin's settings. They
+     * block at the browser's network level, including requests the in-page
+     * interceptors can't see (workers, service worker).
+     */
+    networkRules?: Record<string, (settings: Record<string, any>) => boolean>;
     /** Static CSS applied while the plugin is enabled. */
     css?: string;
     /** Webpack source patches. Applied at page load only, so toggling needs a reload. */

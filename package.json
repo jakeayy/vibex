@@ -1,7 +1,7 @@
 {
   "name": "vibex",
   "version": "0.1.0",
-  "description": "VibeX - a client mod for X (Twitter) web, shipped as a userscript",
+  "description": "VibeX - a client mod for X (Twitter) web",
   "private": true,
   "type": "module",
   "scripts": {
@@ -11,6 +11,7 @@
   },
   "license": "MIT",
   "devDependencies": {
+    "@types/chrome": "^0.3.5",
     "@types/react": "^19.3.0",
     "esbuild": "^0.28.2",
     "lightningcss": "^1.33.0",

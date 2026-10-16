@@ -1,19 +1,40 @@
 # VibeX
 
-A client mod for X (Twitter) web, in the spirit of Vencord. It ships as a single minified userscript.
+A client mod for X (Twitter) web, in the spirit of Vencord. It ships as a userscript and as a browser extension for Chrome and Firefox, all built from the same source.
 
 ## Build & install
 
 ```bash
 npm install
-npm run build      # -> dist/vibex.user.js (minified, CSS included)
+npm run build      # all targets, minified (CSS included)
+npm run build -- --target=chrome   # or userscript / firefox, comma-separated
 npm run watch      # unminified rebuilds while developing
 npm run typecheck
 ```
 
 The build minifies JavaScript with esbuild and every `css` template with [Lightning CSS](https://lightningcss.dev/).
 
-Install `dist/vibex.user.js` in Tampermonkey or Violentmonkey. It must run at `document-start` (the header already asks for this) so the webpack hook goes in before X's bundles execute. Then open **Settings → VibeX** on x.com.
+| Target | Output | Install |
+|---|---|---|
+| Userscript | `dist/vibex.user.js` | Tampermonkey or Violentmonkey. It must run at `document-start` (the header asks for this) so the webpack hook goes in before X's bundles execute. |
+| Chrome / Chromium (111+) | `dist/chrome/`, `dist/vibex-chrome.zip` | `chrome://extensions` → Developer mode → **Load unpacked** → `dist/chrome`. The zip is for the Chrome Web Store. |
+| Firefox (128+) | `dist/firefox/`, `dist/vibex-firefox.zip` | `about:debugging#/runtime/this-firefox` → **Load Temporary Add-on** → `dist/firefox/manifest.json` (until restart). Permanent installs need the zip signed through addons.mozilla.org. |
+
+Then open **Settings → VibeX** on x.com (or click the extension's toolbar button). Install one target only: if two load, the second one notices and stays off.
+
+### Nightly builds
+
+`.forgejo/workflows/nightly.yml` builds every target on each push to `main` and on demand. It then replaces the `nightly` prerelease: the old release and its tag are deleted, and a new one is created on the built commit with `vibex.user.js`, `vibex-chrome.zip` and `vibex-firefox.zip` attached (`scripts/nightly-release.mjs`). It uses the automatic token Forgejo gives every run (`secrets.FORGEJO_TOKEN`). If that can't manage releases on your Forgejo instance, add a repository secret `NIGHTLY_TOKEN` with write access to the repository.
+
+### What the extension adds
+
+The page code is the same in every target; the extension builds add what a userscript can't do:
+
+- **Guaranteed early start.** VibeX is a `document_start` content script in the page's own JS world (`"world": "MAIN"`), which the browser runs before any page script. A userscript manager usually manages this too, but not always, and a late start leaves every webpack patch unapplied.
+- **Network-level blocking.** Plugins declare `declarativeNetRequest` rulesets (`src/extension/rules/`) that follow their settings: SponsorBegone's tracking block (`telemetry`) and NoGrok's request block (`grok`). The in-page interceptors still answer X's own calls; the rulesets also catch what they can't see (workers, the service worker, pixels). Rules apply only to requests X makes, so grok.com in its own tab is untouched. Enabled rulesets persist, so they apply from X's first request on the next visit.
+- **Toolbar button** that opens VibeX's settings.
+
+The page (no extension APIs) talks to the extension through `src/extension/bridge.ts`, an isolated-world content script, which forwards to the background script (`background.ts`; a service worker in Chrome, an event page in Firefox). The About page shows which target is running.
 
 ## Layout
 
@@ -40,7 +61,8 @@ src/
     mediaDownloader.ts Share-menu download item
     featureSwitchesAPI.ts core switch hook (required)
     consoleShortcuts.ts webpack helpers in the console
-  core/               shared hooks plugins build on (feature switch resolvers)
+  core/               shared hooks plugins build on (feature switch resolvers, extension bridge)
+  extension/          extension-only code: bridge content script, background script, network rulesets
   utils/              style helpers, router, storage, logger, network interceptors
 ```
 
@@ -96,6 +118,7 @@ Then add it to `src/plugins/index.ts`.
 - Write stylesheets as `css` tagged templates (`utils/css`), for `css:` and `addStyle()` alike. The build minifies each one with Lightning CSS and drops the tag. Interpolations work, except inside quoted CSS strings: such a template is left unminified.
 - `start` and `stop` run live when the user toggles the plugin. Changing a setting restarts the plugin unless that setting has `restartNeeded: true`, which shows a "Reload needed" banner instead.
 - `startEarly: true` starts the plugin at document-start instead of DOMContentLoaded, before X's bundles run (no DOM yet). SponsorBegone uses it so X's very first requests are already intercepted.
+- `networkRules: { <rulesetId>: settings => boolean }` turns on a ruleset from `src/extension/rules/<id>.json` in extension builds (the userscript ignores it); keep the in-page interceptor too, so the userscript gets the same blocking.
 - `addInterceptor()` from `utils/network` hooks every XHR, `fetch` and `sendBeacon` request: rewrite its URL or body, or block it (it then completes locally as an empty 200).
 - `addResponseObserver()` from `utils/network` sees every completed XHR/`fetch` response read-only, before X's own handlers; `res.json()` parses lazily, so observers that filter by `res.url` first cost nothing.
 - `settingsPanel` adds your own React component to the plugin's settings page, above its settings (BetterBlockedWords shows its counters there).

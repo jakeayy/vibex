@@ -66,6 +66,7 @@ export default definePlugin({
     description: "Removes promoted posts, promoted accounts and trends, and other ads, and blocks X's tracking requests.",
     authors: ["VibeX"],
     startEarly: true,
+    networkRules: { telemetry: s => !!s.blockTracking },
     settings: {
         removeAds: {
             type: "boolean",

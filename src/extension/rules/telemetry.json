@@ -1,0 +1,11 @@
+[
+    { "id": 1, "priority": 1, "action": { "type": "block" }, "condition": { "urlFilter": "/1.1/jot/", "requestDomains": ["x.com", "twitter.com"], "excludedResourceTypes": ["main_frame"] } },
+    { "id": 2, "priority": 1, "action": { "type": "block" }, "condition": { "urlFilter": "/1.1/graphql/viewer_context", "requestDomains": ["x.com", "twitter.com"], "excludedResourceTypes": ["main_frame"] } },
+    { "id": 3, "priority": 1, "action": { "type": "block" }, "condition": { "urlFilter": "/1.1/graphql/user_flow", "requestDomains": ["x.com", "twitter.com"], "excludedResourceTypes": ["main_frame"] } },
+    { "id": 4, "priority": 1, "action": { "type": "block" }, "condition": { "urlFilter": "/1.1/graphql/app_context", "requestDomains": ["x.com", "twitter.com"], "excludedResourceTypes": ["main_frame"] } },
+    { "id": 5, "priority": 1, "action": { "type": "block" }, "condition": { "urlFilter": "/1.1/graphql/error_log", "requestDomains": ["x.com", "twitter.com"], "excludedResourceTypes": ["main_frame"] } },
+    { "id": 6, "priority": 1, "action": { "type": "block" }, "condition": { "urlFilter": "/1.1/graphql/ces/p2", "requestDomains": ["x.com", "twitter.com"], "excludedResourceTypes": ["main_frame"] } },
+    { "id": 7, "priority": 1, "action": { "type": "block" }, "condition": { "urlFilter": "/1.1/flow/timeline", "requestDomains": ["x.com", "twitter.com"], "excludedResourceTypes": ["main_frame"] } },
+    { "id": 8, "priority": 1, "action": { "type": "block" }, "condition": { "urlFilter": "/1.1/flow/viewer", "requestDomains": ["x.com", "twitter.com"], "excludedResourceTypes": ["main_frame"] } },
+    { "id": 9, "priority": 1, "action": { "type": "block" }, "condition": { "urlFilter": "/1.1/promoted_content/log", "requestDomains": ["x.com", "twitter.com"], "excludedResourceTypes": ["main_frame"] } }
+]

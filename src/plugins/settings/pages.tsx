@@ -8,6 +8,8 @@ import { icons } from "./icons";
 
 export const BASE = "/settings/vibex";
 
+const TARGET_NAMES = { userscript: "Userscript", chrome: "Chrome extension", firefox: "Firefox extension" };
+
 /** Props X's router passes to route components. */
 interface RouteProps {
     location: unknown;
@@ -45,6 +47,7 @@ export function AboutPage({ location }: RouteProps) {
         const info = {
             version: VIBEX_VERSION,
             build: VIBEX_BUILD_TIME,
+            target: VIBEX_TARGET,
             userAgent: navigator.userAgent,
             webpack: {
                 hookedEarly: webpack.hookedEarly, modules, loaded, ...webpack.stats,
@@ -69,6 +72,7 @@ export function AboutPage({ location }: RouteProps) {
             </Description>
             <InfoRow label="Version" value={VIBEX_VERSION} />
             <InfoRow label="Built" value={new Date(VIBEX_BUILD_TIME).toLocaleString()} />
+            <InfoRow label="Installed as" value={TARGET_NAMES[VIBEX_TARGET]} />
             <InfoRow label="Plugins enabled" value={`${plugins.filter(p => p.enabled).length} / ${plugins.length}`} />
 
             <h3 className="vx-subhead">Internals</h3>
