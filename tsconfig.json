@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "strict": true,
+    "noEmit": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "types": [],
+    "jsx": "react-jsx",
+    "jsxImportSource": "@vibex/react",
+    "paths": {
+      "@vibex/react": ["./src/webpack/react/index.ts"],
+      "@vibex/react/jsx-runtime": ["./src/webpack/react/jsx-runtime.ts"]
+    }
+  },
+  "include": ["src"]
+}
