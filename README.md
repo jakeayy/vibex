@@ -29,9 +29,11 @@ src/
     hooks.ts          React hooks (useSettingsVersion)
     index.ts          list of built-in plugins (add yours here)
     settings/         the VibeX settings section (itself a plugin)
-    cleanSidebar.tsx  example: webpack patches + React settings UI
-    consoleShortcuts.ts example: start/stop
-  utils/              style helpers, router, storage, logger
+    cleanSidebar.tsx  hide sidebar / More menu items (patches + React settings UI)
+    sponsorBegone.ts  remove ads, block telemetry (patch + network interceptor)
+    oldTwitterBranding.ts bird logo, classic blue, Tweet/Retweet wording (patches)
+    consoleShortcuts.ts webpack helpers in the console
+  utils/              style helpers, router, storage, logger, network interceptors
 ```
 
 ## How it hooks X
@@ -40,6 +42,16 @@ src/
 - **CSP.** x.com's CSP blocks `eval` and `new Function`, and reports violations. Patched modules are compiled through an inline `<script>` that carries the page's own CSP nonce.
 - **React.** VibeX doesn't bundle React. `.tsx` files compile against `@vibex/react/jsx-runtime`, a shim that forwards to X's own React 19 runtime, found through webpack. Import hooks from `@vibex/react`, never from `react`: a second React copy would break hooks.
 - **Settings pages.** The Settings plugin patches X's settings route table to add `/settings/vibex`, `/about`, `/plugins` and `/plugins/:name` as real routes. X's router renders them in the detail column, and they appear in X's settings search. The pages are built from X's own `SettingsScreen`, `Pivot` and `BooleanItem` components, with plain-markup fallbacks if X renames one.
+
+## Built-in plugins
+
+| Plugin | What it does | How |
+|---|---|---|
+| Settings | The VibeX settings section | Patches X's settings nav and route table |
+| CleanSidebar | Hide any sidebar item, More menu entries, or swap More for a Settings tab | Patches the nav tab array and the More menu item builder |
+| SponsorBegone | Removes promoted posts/accounts/trends and other ads, blocks telemetry | Rewrites `includePromotedContent` in GraphQL requests, patches X's timeline entry pipeline to drop anything with `promotedMetadata`, answers X's telemetry endpoints locally |
+| OldTwitterBranding | Bird logo and favicon, classic `#1DA1F2` blue, blue Tweet buttons, Tweet / Retweet / Twitter wording | Patches the logo icon, colour palettes, button styles and X's English string catalogs |
+| ConsoleShortcuts | `vx` helpers in DevTools | — |
 
 ## Writing a plugin
 
@@ -65,7 +77,10 @@ export default definePlugin({
 
 Then add it to `src/plugins/index.ts`.
 
-- `start` and `stop` run live when the user toggles the plugin. Changing a setting restarts the plugin unless that setting has `restartNeeded: true`.
+- `start` and `stop` run live when the user toggles the plugin. Changing a setting restarts the plugin unless that setting has `restartNeeded: true`, which shows a "Reload needed" banner instead.
+- `startEarly: true` starts the plugin at document-start instead of DOMContentLoaded, before X's bundles run (no DOM yet). SponsorBegone uses it so X's very first requests are already intercepted.
+- `addInterceptor()` from `utils/network` hooks every XHR, `fetch` and `sendBeacon` request: rewrite its URL or body, or block it (it then completes locally as an empty 200).
+- `addResponseObserver()` from `utils/network` sees every completed XHR/`fetch` response read-only; `res.json()` parses lazily, so observers that filter by `res.url` first cost nothing.
 - Setting types are `boolean`, `string`, `number`, `select` and `custom` (your own React component that receives `{ value, set }`). The settings page is generated from them. A setting can also take `section` (groups it under a heading) and `disabled(settings)` (greys it out, e.g. under a parent toggle).
 
 ### Webpack patches

@@ -14,6 +14,8 @@ interface Runtime {
     cleanups: (() => void)[];
     styleIds: string[];
     patchesApplied: boolean;
+    /** A `restartNeeded` setting changed since page load. */
+    settingsNeedReload: boolean;
 }
 
 const registry = new Map<string, Runtime>();
@@ -49,7 +51,7 @@ function makeContext(rt: Omit<Runtime, "ctx">): PluginContext<any> {
 
 export function registerPlugin(def: PluginDef) {
     if (registry.has(def.name)) throw new Error(`Duplicate plugin name: ${def.name}`);
-    const partial = { def, running: false, cleanups: [], styleIds: [], patchesApplied: false };
+    const partial = { def, running: false, cleanups: [], styleIds: [], patchesApplied: false, settingsNeedReload: false };
     const rt: Runtime = { ...partial, ctx: null! };
     rt.ctx = makeContext(rt);
     registry.set(def.name, rt);
@@ -109,6 +111,7 @@ export function setPluginSetting(name: string, key: string, value: unknown) {
     const rt = registry.get(name);
     if (!rt) return;
     state(rt.def)[key] = value;
+    if (rt.def.settings?.[key]?.restartNeeded) rt.settingsNeedReload = true;
     saveSettings();
     // Simple, predictable semantics: a running plugin restarts to pick up new settings.
     if (rt.running && !rt.def.settings?.[key]?.restartNeeded) {
@@ -120,6 +123,11 @@ export function setPluginSetting(name: string, key: string, value: unknown) {
 export function getPluginSetting(name: string, key: string) {
     const rt = registry.get(name);
     return rt ? state(rt.def)[key] : undefined;
+}
+
+/** Starts enabled `startEarly` plugins; runs at document-start. */
+export function startEarlyPlugins() {
+    for (const [name, rt] of registry) if (rt.def.startEarly && isEnabled(name)) startPlugin(name);
 }
 
 export function startAll() {
@@ -137,7 +145,8 @@ export function listPlugins() {
         def: rt.def,
         running: rt.running,
         enabled: isEnabled(rt.def.name),
-        needsReload: !!rt.def.patches?.length && rt.patchesApplied !== isEnabled(rt.def.name),
+        needsReload: (!!rt.def.patches?.length && rt.patchesApplied !== isEnabled(rt.def.name))
+            || (rt.settingsNeedReload && isEnabled(rt.def.name)),
     }));
 }
 

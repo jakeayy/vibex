@@ -1,6 +1,6 @@
 import { VibeX } from "./api";
 import { builtinPlugins } from "./plugins";
-import { registerPlugin, startAll } from "./plugins/manager";
+import { registerPlugin, startAll, startEarlyPlugins } from "./plugins/manager";
 import { onReady } from "./utils/dom";
 import { Logger } from "./utils/logger";
 import { initRouter } from "./utils/router";
@@ -20,6 +20,7 @@ if (window.top !== window) {
     builtinPlugins.forEach(registerPlugin);
     initWebpack();
     initRouter();
+    startEarlyPlugins();
     onReady(startAll);
 
     logger.info(`v${VIBEX_VERSION} loaded`);

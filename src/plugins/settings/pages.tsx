@@ -172,7 +172,7 @@ export function PluginPage({ location, match }: RouteProps) {
     if (!info) {
         return (
             <Screen location={location} title="Plugin not found" screenType="secondaryDetail" backLocation={`${BASE}/plugins`}>
-                <Description>There's no VibeX plugin called "{name}".</Description>
+                <Description>{`There's no VibeX plugin called "${name}".`}</Description>
             </Screen>
         );
     }
@@ -183,9 +183,10 @@ export function PluginPage({ location, match }: RouteProps) {
 
     return (
         <Screen location={location} title={def.name} screenType="secondaryDetail" backLocation={`${BASE}/plugins`}>
+            {/* One string: X's Description pads each child separately, so split text wraps unpadded. */}
             <Description>
-                {def.description} By {def.authors.join(", ")}.
-                {def.patches?.length ? " This plugin patches X's code, so turning it on or off needs a reload." : ""}
+                {`${def.description} By ${def.authors.join(", ")}.`
+                    + (def.patches?.length ? " This plugin patches X's code, so turning it on or off needs a reload." : "")}
             </Description>
             {needsReload && <ReloadBanner />}
             <BooleanItem

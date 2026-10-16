@@ -45,6 +45,11 @@ export interface PluginDef<S extends Record<string, PluginSetting> = Record<stri
     /** Can't be disabled (core functionality). */
     required?: boolean;
     enabledByDefault?: boolean;
+    /**
+     * Start at document-start instead of DOMContentLoaded, before X's bundles
+     * run (e.g. to intercept X's first network requests). No DOM is available yet.
+     */
+    startEarly?: boolean;
     settings?: S;
     /** Static CSS applied while the plugin is enabled. */
     css?: string;
