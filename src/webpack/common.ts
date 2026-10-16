@@ -40,6 +40,29 @@ export interface RouterModule {
 
 export const getRouter = lazyValue<RouterModule>("react-router", () => find(filters.byProps("Route", "Switch", "withRouter", "useHistory")));
 
+/* ---------------------------------- store ---------------------------------- */
+
+export interface ReduxStore {
+    getState(): any;
+    dispatch(action: unknown): unknown;
+    subscribe(fn: () => void): () => void;
+}
+
+let store: ReduxStore | undefined;
+
+/** X's Redux store, found on the <Provider> near the top of the React tree. */
+export function getStore(): ReduxStore | undefined {
+    if (store) return store;
+    const container = document.getElementById("react-root");
+    const key = container && Object.keys(container).find(k => k.startsWith("__reactContainer$"));
+    let fiber = key ? (container as any)[key] : null;
+    for (let i = 0; fiber && i < 200; i++, fiber = fiber.child) {
+        const s = fiber.memoizedProps?.store ?? fiber.memoizedProps?.value?.store;
+        if (s?.getState && s.dispatch) return (store = s);
+    }
+    logger.warn("Could not find X's Redux store");
+}
+
 /* ------------------------------- X components ------------------------------- */
 
 export interface SettingsScreenProps {

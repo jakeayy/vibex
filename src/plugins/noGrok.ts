@@ -1,4 +1,5 @@
-import { addResponseObserver } from "../utils/network";
+import { addSwitchResolver, withValue } from "../core/featureSwitches";
+import { addInterceptor, addResponseObserver, apiPath } from "../utils/network";
 import { getPluginSetting, isEnabled } from "./manager";
 import { definePlugin } from "./types";
 
@@ -83,6 +84,22 @@ const KEEP = new Set([
 const INVERTED = /disable|hide|holdback|block/i;
 const TRANSLATION = /translat/i;
 
+// Registered at load (not in start) because X reads switches from its very
+// first render; the resolver checks the plugin's settings itself.
+addSwitchResolver((name, result) => {
+    if (!result || result.value !== true || !setting("hideGrok")) return result;
+    if (!GROK_SWITCH.test(name) || KEEP.has(name) || INVERTED.test(name)) return result;
+    if (TRANSLATION.test(name) && !setting("hideTranslations")) return result;
+    return withValue(result, false);
+});
+
+/* ------------------------------ Grok requests ------------------------------ */
+
+// Background requests X makes for Grok even with its UI hidden: account
+// tokens, subscription status and grok.com checkout sessions.
+const GROK_HOST = /(^|\.)(grok\.com|x\.ai)$/;
+const GROK_GRAPHQL = /\/graphql\/[^/]+\/grok\w*$/i;
+
 export default definePlugin({
     name: NAME,
     description: "Removes Grok and Grok Imagine from X (sidebar, post buttons, floating button, edit-image buttons, prompts) and blocks Grok edits of the media you post by default.",
@@ -100,6 +117,11 @@ export default definePlugin({
             default: true,
             restartNeeded: true,
             disabled: s => !s.hideGrok,
+        },
+        blockGrokRequests: {
+            type: "boolean",
+            description: "Block X's background requests to Grok (account tokens, subscription and checkout calls)",
+            default: true,
         },
         blockEditsByDefault: {
             type: "boolean",
@@ -132,14 +154,6 @@ export default definePlugin({
             },
         },
         {
-            // X's FeatureSwitches class: every isTrue/getValue goes through getFeatureSwitch.
-            find: "getValueWithoutImpression=(",
-            replacement: {
-                match: /this\.getFeatureSwitch=\(\{name:([\w$]+),shouldScribeImpression:([\w$]+)=!0\}\)=>([\w$]+)\(\{key:\1,shouldScribeImpression:\2\}\)/,
-                replace: "this.getFeatureSwitch=({name:$1,shouldScribeImpression:$2=!0})=>$self.featureSwitch($1,$3({key:$1,shouldScribeImpression:$2}))",
-            },
-        },
-        {
             // Floating Grok drawer (bottom right): not switch-gated. Its container
             // renders the expanded drawer, the collapsed button, or null.
             find: 'id:"GrokDrawer"',
@@ -167,13 +181,6 @@ export default definePlugin({
             },
         },
     ],
-
-    featureSwitch(name: string, result: { value: unknown } | undefined) {
-        if (!result || result.value !== true || !setting("hideGrok")) return result;
-        if (!GROK_SWITCH.test(name) || KEEP.has(name) || INVERTED.test(name)) return result;
-        if (TRANSLATION.test(name) && !setting("hideTranslations")) return result;
-        return { ...result, value: false };
-    },
 
     hideDrawer: () => setting("hideGrok"),
 
@@ -226,6 +233,14 @@ export default definePlugin({
     },
 
     start(this: { ingest(json: unknown): void }, { onStop }) {
+        onStop(addInterceptor(({ url }) => {
+            if (!setting("blockGrokRequests")) return;
+            if (GROK_HOST.test(url.hostname)) return { block: true, respond: "{}" };
+            // X's own API: answer Grok GraphQL queries with an empty result it can parse.
+            if (/(^|\.)(x|twitter)\.com$/.test(url.hostname) && GROK_GRAPHQL.test(apiPath(url))) {
+                return { block: true, respond: '{"data":{}}' };
+            }
+        }));
         // Starts at document-start, so the observer sees X's very first API
         // responses. It runs before X's own load handler, so posts are
         // classified by the time they reach the timeline pipeline.

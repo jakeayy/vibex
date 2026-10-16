@@ -14,7 +14,8 @@ export interface InterceptedRequest {
     body: unknown;
 }
 
-export type RequestDecision = { block: true } | { url?: URL; body?: unknown } | void;
+/** `block` completes the request locally; `respond` sets the fake response body (default ""). */
+export type RequestDecision = { block: true; respond?: string } | { url?: URL; body?: unknown } | void;
 export type Interceptor = (req: InterceptedRequest) => RequestDecision;
 
 /** Read-only view of a completed response; `json()` parses lazily and returns null for non-JSON. */
@@ -59,7 +60,7 @@ function notify(url: URL, status: number, read: () => unknown) {
     }
 }
 
-function run(req: InterceptedRequest): { blocked: boolean; url: URL; body: unknown } {
+function run(req: InterceptedRequest): { blocked: boolean; respond?: string; url: URL; body: unknown } {
     let { url, body } = req;
     for (const fn of interceptors) {
         let d: RequestDecision;
@@ -70,7 +71,7 @@ function run(req: InterceptedRequest): { blocked: boolean; url: URL; body: unkno
             continue;
         }
         if (!d) continue;
-        if ("block" in d) return { blocked: true, url, body };
+        if ("block" in d) return { blocked: true, respond: d.respond, url, body };
         if (d.url) url = d.url;
         if ("body" in d) body = d.body;
     }
@@ -93,7 +94,7 @@ function install() {
     const XHR = XMLHttpRequest.prototype;
     const origOpen = XHR.open;
     const origSend = XHR.send;
-    const meta = new WeakMap<XMLHttpRequest, { method: string; url: URL; blocked: boolean }>();
+    const meta = new WeakMap<XMLHttpRequest, { method: string; url: URL; blocked: boolean; respond?: string }>();
     const observed = new WeakSet<XMLHttpRequest>();
 
     // URL rewrites and block decisions happen at open(), before the caller
@@ -120,14 +121,14 @@ function install() {
         }
         const m = method.toUpperCase();
         const out = run({ url: u, method: m, body: undefined });
-        meta.set(this, { method: m, url: out.url, blocked: out.blocked });
+        meta.set(this, { method: m, url: out.url, blocked: out.blocked, respond: out.respond });
         return (origOpen as any).call(this, method, out.url.href, ...rest);
     } as typeof XHR.open;
 
     XHR.send = function (this: XMLHttpRequest, body?: Document | XMLHttpRequestBodyInit | null) {
         const m = meta.get(this);
         if (!m) return origSend.call(this, body);
-        if (m.blocked) return fakeXhrSuccess(this);
+        if (m.blocked) return fakeXhrSuccess(this, m.respond);
         if (body == null) return origSend.call(this, body);
         return origSend.call(this, run({ url: m.url, method: m.method, body }).body as any);
     };
@@ -151,7 +152,7 @@ function install() {
 
         const method = (init?.method ?? (isReq ? input.method : "GET")).toUpperCase();
         const out = run({ url, method, body: init?.body });
-        if (out.blocked) return Promise.resolve(new Response("", { status: 200 }));
+        if (out.blocked) return Promise.resolve(new Response(out.respond ?? "", { status: 200 }));
         if (out.url.href === url.href && out.body === init?.body) return observe(url, origFetch.call(this, input, init));
         return observe(out.url, origFetch.call(this, isReq ? new Request(out.url, input) : out.url, { ...init, body: out.body as BodyInit }));
     };
@@ -169,13 +170,13 @@ function install() {
 }
 
 /** Completes an XHR locally as an empty 200 without touching the network. */
-function fakeXhrSuccess(xhr: XMLHttpRequest) {
+function fakeXhrSuccess(xhr: XMLHttpRequest, body = "") {
     const define = (k: string, v: unknown) => Object.defineProperty(xhr, k, { configurable: true, get: () => v });
     define("readyState", 4);
     define("status", 200);
     define("statusText", "OK");
-    define("responseText", "");
-    define("response", xhr.responseType === "json" ? null : "");
+    define("responseText", body);
+    define("response", xhr.responseType === "json" ? (body ? JSON.parse(body) : null) : body);
     define("responseURL", "");
     xhr.getAllResponseHeaders = () => "";
     xhr.getResponseHeader = () => null;
