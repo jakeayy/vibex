@@ -32,6 +32,7 @@ src/
     cleanSidebar.tsx  hide sidebar / More menu items (patches + React settings UI)
     sponsorBegone.ts  remove ads, block telemetry (patch + network interceptor)
     oldTwitterBranding.ts bird logo, classic blue, Tweet/Retweet wording (patches)
+    noGrok.ts         remove Grok UI, block Grok edits of your media by default
     consoleShortcuts.ts webpack helpers in the console
   utils/              style helpers, router, storage, logger, network interceptors
 ```
@@ -51,6 +52,7 @@ src/
 | CleanSidebar | Hide any sidebar item, More menu entries, or swap More for a Settings tab | Patches the nav tab array and the More menu item builder |
 | SponsorBegone | Removes promoted posts/accounts/trends and other ads, blocks telemetry | Rewrites `includePromotedContent` in GraphQL requests, patches X's timeline entry pipeline to drop anything with `promotedMetadata`, answers X's telemetry endpoints locally |
 | OldTwitterBranding | Bird logo and favicon, classic `#1DA1F2` blue, blue Tweet buttons, Tweet / Retweet / Twitter wording | Patches the logo icon, colour palettes, button styles and X's English string catalogs |
+| NoGrok | Removes Grok and Grok Imagine (sidebar tab, post buttons, floating button, edit-image and profile "Edit with Imagine" buttons, prompts) and blocks Grok edits of your media by default | Answers `false` for X's Grok feature switches, hides the floating drawer, and defaults the media "Block modifications by Grok" option to on |
 | ConsoleShortcuts | `vx` helpers in DevTools | — |
 
 ## Writing a plugin

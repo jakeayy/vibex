@@ -5,6 +5,7 @@ import cleanSidebar from "./cleanSidebar";
 import consoleShortcuts from "./consoleShortcuts";
 import sponsorBegone from "./sponsorBegone";
 import oldTwitterBranding from "./oldTwitterBranding";
+import noGrok from "./noGrok";
 
 // Add new plugins here.
 export const builtinPlugins: PluginDef<any>[] = [
@@ -13,4 +14,5 @@ export const builtinPlugins: PluginDef<any>[] = [
     consoleShortcuts,
     sponsorBegone,
     oldTwitterBranding,
+    noGrok,
 ];
