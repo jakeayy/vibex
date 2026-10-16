@@ -52,7 +52,7 @@ src/
 | CleanSidebar | Hide any sidebar item, More menu entries, or swap More for a Settings tab | Patches the nav tab array and the More menu item builder |
 | SponsorBegone | Removes promoted posts/accounts/trends and other ads, blocks telemetry | Rewrites `includePromotedContent` in GraphQL requests, patches X's timeline entry pipeline to drop anything with `promotedMetadata`, answers X's telemetry endpoints locally |
 | OldTwitterBranding | Bird logo and favicon, classic `#1DA1F2` blue, blue Tweet buttons, Tweet / Retweet / Twitter wording | Patches the logo icon, colour palettes, button styles and X's English string catalogs |
-| NoGrok | Removes Grok and Grok Imagine (sidebar tab, post buttons, floating button, edit-image and profile "Edit with Imagine" buttons, prompts) and blocks Grok edits of your media by default | Answers `false` for X's Grok feature switches, hides the floating drawer, and defaults the media "Block modifications by Grok" option to on |
+| NoGrok | Removes Grok and Grok Imagine (sidebar tab, post buttons, floating button, edit-image and profile "Edit with Imagine" buttons, prompts) blocks Grok edits of your media by default, and hides posts by or @mentioning @grok | Answers `false` for X's Grok feature switches, hides the floating drawer, defaults the media "Block modifications by Grok" option to on, and filters timeline batches using posts classified from API responses (an all-Grok batch is left as-is so X doesn't keep fetching) |
 | ConsoleShortcuts | `vx` helpers in DevTools | — |
 
 ## Writing a plugin
