@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="132 350 520 460" width="520" height="460">
+  <defs>
+    <linearGradient id="blue" x1="0" y1="360" x2="0" y2="800" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1FAAF8"/>
+      <stop offset="1" stop-color="#0F95EE"/>
+    </linearGradient>
+  </defs>
+  <g fill="url(#blue)">
+    <!-- left stroke -->
+    <polygon points="142,360 242,360 379,590 328,673"/>
+    <!-- lower small stroke -->
+    <polygon points="409,584 456,661 371,800 326,724"/>
+    <!-- X shape -->
+    <polygon points="357,459 445,459 465,492 545,360 642,360 516,568 630,753 537,753"/>
+  </g>
+</svg>

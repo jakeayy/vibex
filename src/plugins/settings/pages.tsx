@@ -3,7 +3,7 @@ import * as webpack from "../../webpack";
 import { listPlugins, getPluginSetting, setPluginEnabled, setPluginSetting } from "../manager";
 import { useSettingsVersion } from "../hooks";
 import type { PluginDef, PluginSetting } from "../types";
-import { BooleanItem, Button, Description, Icon, InfoRow, Pivot, ReloadBanner, Screen, Tag, Text } from "./components";
+import { BooleanItem, Button, Description, Icon, InfoRow, Logo, Pivot, ReloadBanner, Screen, Tag, Text } from "./components";
 import { icons } from "./icons";
 
 export const BASE = "/settings/vibex";
@@ -19,6 +19,7 @@ interface RouteProps {
 export function HomePage({ location }: RouteProps) {
     return (
         <Screen location={location} title="VibeX" screenType="primaryDetail">
+            <Logo />
             <Description>VibeX is a client mod for X. Manage its plugins and see what it's doing under the hood.</Description>
             <Pivot
                 label="About VibeX"

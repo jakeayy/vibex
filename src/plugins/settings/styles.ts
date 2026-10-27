@@ -10,6 +10,8 @@ export const styles = css`
 }
 .vx-root * { box-sizing: border-box; }
 .vx-icon { width: 24px; height: 24px; fill: currentColor; color: var(--vx-muted); display: block; }
+.vx-logo { display: block; width: 64px; margin: 24px auto 8px; }
+.vx-logo svg { display: block; width: 100%; height: auto; }
 .vx-value { color: var(--vx-muted); font-size: 15px; text-align: right; font-variant-numeric: tabular-nums; }
 .vx-buttons { display: flex; flex-wrap: wrap; gap: 12px; padding: 12px 16px 24px; }
 .vx-btn {

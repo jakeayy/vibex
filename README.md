@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/logo.svg" alt="VibeX" width="96">
+</p>
+
 # VibeX
 
 A client mod for X (Twitter) web, in the spirit of Vencord. It ships as a userscript and as a browser extension for Chrome and Firefox, all built from the same source.

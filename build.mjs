@@ -4,6 +4,7 @@
 //   dist/firefox/          Firefox extension (Manifest V3), + vibex-firefox.zip
 //
 //   node build.mjs [--watch] [--target=userscript,chrome,firefox]
+import { Resvg } from "@resvg/resvg-js";
 import * as esbuild from "esbuild";
 import { transform as transformCss } from "lightningcss";
 import { copyFileSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
@@ -17,6 +18,9 @@ const only = process.argv.find(a => a.startsWith("--target="))?.slice(9).split("
 
 const MATCHES = ["https://x.com/*", "https://twitter.com/*"];
 const RULES_DIR = "src/extension/rules";
+const LOGO = "assets/logo.svg";
+// Chrome needs raster icons (MV3 ignores SVG); Firefox uses the SVG directly.
+const CHROME_ICON_SIZES = [16, 32, 48, 128];
 
 /* --------------------------------- CSS minify -------------------------------- */
 
@@ -160,8 +164,14 @@ function manifest(browser) {
     if (browser === "chrome") {
         m.minimum_chrome_version = "111"; // content_scripts "world": "MAIN"
         m.background = { service_worker: "background.js" };
+        const icons = Object.fromEntries(CHROME_ICON_SIZES.map(s => [s, `icons/icon-${s}.png`]));
+        m.icons = icons;
+        m.action.default_icon = icons;
     } else {
         m.background = { scripts: ["background.js"] };
+        // Firefox renders SVG icons (Chrome MV3 doesn't), so ship the logo there.
+        m.icons = { 48: "logo.svg", 96: "logo.svg" };
+        m.action.default_icon = { 48: "logo.svg", 96: "logo.svg" };
         m.browser_specific_settings = {
             gecko: {
                 id: "vibex@jakeayy.ch",
@@ -180,6 +190,7 @@ const common = {
     charset: "utf8",
     legalComments: "none",
     logLevel: "info",
+    loader: { ".svg": "text" }, // inline the logo straight from assets/logo.svg
 };
 
 const define = target => ({
@@ -202,12 +213,32 @@ const targets = {
     firefox: () => extension("firefox"),
 };
 
+/** Renders assets/logo.svg to square PNGs for Chrome's icons. */
+function renderChromeIcons(outdir) {
+    // Square the viewBox (centred) and drop width/height so resvg fits to a
+    // square; the logo itself is wider than tall.
+    let svg = readFileSync(LOGO, "utf8");
+    const vb = svg.match(/viewBox="([-\d.\s]+)"/);
+    const [x, y, w, h] = vb[1].trim().split(/\s+/).map(Number);
+    const side = Math.max(w, h);
+    svg = svg
+        .replace(vb[0], `viewBox="${x - (side - w) / 2} ${y - (side - h) / 2} ${side} ${side}"`)
+        .replace(/\s(width|height)="[^"]*"/g, "");
+    mkdirSync(`${outdir}/icons`, { recursive: true });
+    for (const size of CHROME_ICON_SIZES) {
+        const png = new Resvg(svg, { fitTo: { mode: "width", value: size } }).render().asPng();
+        writeFileSync(`${outdir}/icons/icon-${size}.png`, png);
+    }
+}
+
 function extension(browser) {
     const outdir = `dist/${browser}`;
     rmSync(outdir, { recursive: true, force: true });
     mkdirSync(`${outdir}/rules`, { recursive: true });
     writeFileSync(`${outdir}/manifest.json`, JSON.stringify(manifest(browser), null, 2));
     for (const id of rulesets) copyFileSync(`${RULES_DIR}/${id}.json`, `${outdir}/rules/${id}.json`);
+    if (browser === "firefox") copyFileSync(LOGO, `${outdir}/logo.svg`);
+    else renderChromeIcons(outdir);
     return [
         { ...common, entryPoints: ["src/index.ts"], outfile: `${outdir}/vibex.js`, format: "iife", define: define(browser), plugins: [minifyCssPlugin({ report: false })] },
         { ...common, entryPoints: ["src/extension/bridge.ts"], outfile: `${outdir}/bridge.js`, format: "iife" },

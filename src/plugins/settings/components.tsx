@@ -1,4 +1,5 @@
 import type { ReactNode } from "@vibex/react";
+import logo from "../../../assets/logo.svg";
 import {
     getBooleanItem, getDescription, getPivot, getSettingsScreen, getText,
     type BooleanItemProps, type PivotProps, type SettingsScreenProps, type TextProps,
@@ -66,6 +67,12 @@ export function Text(props: TextProps) {
 
 export function Icon({ path }: { path: string }) {
     return <svg className="vx-icon" viewBox="0 0 24 24" aria-hidden="true"><path d={path} /></svg>;
+}
+
+// The VibeX logo, inlined straight from assets/logo.svg at build time (esbuild's
+// text loader), so there's a single source and nothing to keep in sync.
+export function Logo() {
+    return <span className="vx-logo" role="img" aria-label="VibeX" dangerouslySetInnerHTML={{ __html: logo }} />;
 }
 
 export function Tag({ children, warn }: { children: ReactNode; warn?: boolean }) {
