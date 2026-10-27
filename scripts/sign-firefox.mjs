@@ -136,8 +136,10 @@ try {
     process.exit(1);
 }
 
-const [signed] = result.downloadedFiles ?? [];
-if (signed) {
+const [downloaded] = result.downloadedFiles ?? [];
+if (downloaded) {
+    // web-ext returns the bare filename; the file is written under artifactsDir.
+    const signed = existsSync(downloaded) ? downloaded : path.join(ARTIFACTS_DIR, downloaded);
     copyFileSync(signed, SIGNED_COPY);
     console.log(`\nSigned: ${signed}\n     → ${SIGNED_COPY}`);
     if (result.id) console.log(`Add-on id: ${result.id}`);
