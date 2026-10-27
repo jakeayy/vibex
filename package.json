@@ -1,13 +1,14 @@
 {
   "name": "vibex",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "VibeX - a client mod for X (Twitter) web",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "node build.mjs",
     "watch": "node build.mjs --watch",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "sign:firefox": "node build.mjs --target=firefox && node scripts/sign-firefox.mjs"
   },
   "license": "MIT",
   "devDependencies": {
@@ -15,6 +16,7 @@
     "@types/react": "^19.3.0",
     "esbuild": "^0.28.2",
     "lightningcss": "^1.33.0",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "web-ext": "^10.8.0"
   }
 }

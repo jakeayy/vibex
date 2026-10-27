@@ -18,9 +18,31 @@ The build minifies JavaScript with esbuild and every `css` template with [Lightn
 |---|---|---|
 | Userscript | `dist/vibex.user.js` | Tampermonkey or Violentmonkey. It must run at `document-start` (the header asks for this) so the webpack hook goes in before X's bundles execute. |
 | Chrome / Chromium (111+) | `dist/chrome/`, `dist/vibex-chrome.zip` | `chrome://extensions` → Developer mode → **Load unpacked** → `dist/chrome`. The zip is for the Chrome Web Store. |
-| Firefox (128+) | `dist/firefox/`, `dist/vibex-firefox.zip` | `about:debugging#/runtime/this-firefox` → **Load Temporary Add-on** → `dist/firefox/manifest.json` (until restart). Permanent installs need the zip signed through addons.mozilla.org. |
+| Firefox (128+) | `dist/firefox/`, `dist/vibex-firefox.zip` | `about:debugging#/runtime/this-firefox` → **Load Temporary Add-on** → `dist/firefox/manifest.json` (until restart). Permanent installs need the extension signed by Mozilla — see [Signing for Firefox](#signing-for-firefox). |
 
 Then open **Settings → VibeX** on x.com (or click the extension's toolbar button). Install one target only: if two load, the second one notices and stays off.
+
+### Signing for Firefox
+
+Release Firefox only installs extensions signed by Mozilla. `npm run sign:firefox` rebuilds the Firefox target and uploads it to [addons.mozilla.org](https://addons.mozilla.org) (AMO) through [`web-ext`](https://extensionworkshop.com/documentation/develop/web-ext-command-reference/#web-ext-sign) (`scripts/sign-firefox.mjs`).
+
+First create an API key + secret at https://addons.mozilla.org/developers/addon/api/key/ and provide them as environment variables, or in a `.env` file in the project root (gitignored; real environment variables take precedence over it):
+
+```bash
+# .env
+AMO_JWT_ISSUER=user:xxxxxx:xxx
+AMO_JWT_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+```bash
+npm run sign:firefox                        # unlisted (default)
+npm run sign:firefox -- --channel listed    # public AMO store
+```
+
+- **`--channel unlisted`** (default) — self-distribution. AMO signs the add-on without listing it and the signed file is downloaded to `dist/vibex-firefox.xpi`. Host it yourself (e.g. on the nightly release); users install the `.xpi` directly and it stays installed.
+- **`--channel listed`** — submit to the public AMO store for human review. Mozilla hosts and distributes the add-on, so no signed file is returned here. Because the build is bundled and minified, the script also uploads the source for the reviewers: an archive of the committed source (`git archive HEAD` → `dist/vibex-source.zip`). Commit and ideally tag before submitting so the source matches the signed build — the script warns if the working tree is dirty. Override the archive with `--source <zip>`, or skip it with `--no-source` to attach it through the AMO web UI instead.
+
+The add-on id is `browser_specific_settings.gecko.id` (`vibex@jakeayy.ch`, set in `build.mjs`); it must stay stable and be unique on AMO for a listed add-on. Signing is a manual step; the nightly workflow still ships the unsigned `dist/vibex-firefox.zip` for temporary install.
 
 ### Nightly builds
 

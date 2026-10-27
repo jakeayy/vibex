@@ -164,7 +164,7 @@ function manifest(browser) {
         m.background = { scripts: ["background.js"] };
         m.browser_specific_settings = {
             gecko: {
-                id: "vibex@vibex.local",
+                id: "vibex@jakeayy.ch",
                 strict_min_version: "128.0", // content_scripts "world": "MAIN"
                 data_collection_permissions: { required: ["none"] },
             },
