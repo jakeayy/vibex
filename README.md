@@ -48,6 +48,36 @@ npm run sign:firefox -- --channel listed    # public AMO store
 
 The add-on id is `browser_specific_settings.gecko.id` (`vibex@jakeayy.ch`, set in `build.mjs`); it must stay stable and be unique on AMO for a listed add-on. Signing is a manual step; the nightly workflow still ships the unsigned `dist/vibex-firefox.zip` for temporary install.
 
+### Publishing for Chrome
+
+`npm run publish:chrome` rebuilds the Chrome target and uploads `dist/vibex-chrome.zip` to the Chrome Web Store through its [API v2](https://developer.chrome.com/docs/webstore/using-api) (`scripts/publish-chrome.mjs`).
+
+```bash
+npm run publish:chrome                 # upload the new version as a draft
+npm run publish:chrome -- --publish    # upload and submit it for review
+```
+
+Without `--publish` it only uploads a draft you can inspect in the dashboard; with `--publish` it also submits for review (it goes live, with the item's current visibility, once Chrome approves it). The manifest version must be higher than the store's current one.
+
+One-time setup:
+
+1. Create the extension once in the [Developer Dashboard](https://chrome.google.com/webstore/devconsole/) (by uploading a zip there) and complete its **Store listing** and **Privacy** tabs — the API can't create a brand-new item or fill the listing.
+2. In the [Google Cloud Console](https://console.developers.google.com), create a project, enable the **Chrome Web Store API**, configure the OAuth consent screen, and create an OAuth client of type **Web application** (add `https://developers.google.com/oauthplayground` as a redirect URI).
+3. Get a **refresh token** for the scope `https://www.googleapis.com/auth/chromewebstore` (e.g. via the [OAuth Playground](https://developers.google.com/oauthplayground), using your own client id/secret).
+
+Then provide the credentials as environment variables or in `.env` (gitignored):
+
+```bash
+# .env
+CHROME_CLIENT_ID=xxxxxxxxxxxx.apps.googleusercontent.com
+CHROME_CLIENT_SECRET=xxxxxxxxxxxxxxxxxxxxxxxx
+CHROME_REFRESH_TOKEN=xxxxxxxxxxxxxxxxxxxxxxxx
+CHROME_PUBLISHER_ID=xxxxxxxxxxxxxxxxxxxxxxxx   # Dashboard → Publisher → Settings
+CHROME_EXTENSION_ID=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx   # the item's id from its URL
+```
+
+Publishing is a manual step; the nightly workflow still ships the unsigned `dist/vibex-chrome.zip` for load-unpacked install.
+
 ### Nightly builds
 
 `.forgejo/workflows/nightly.yml` builds every target on each push to `main` and on demand. It then replaces the `nightly` prerelease: the old release and its tag are deleted, and a new one is created on the built commit with `vibex.user.js`, `vibex-chrome.zip` and `vibex-firefox.zip` attached (`scripts/nightly-release.mjs`). It uses the automatic token Forgejo gives every run (`secrets.FORGEJO_TOKEN`). If that can't manage releases on your Forgejo instance, add a repository secret `NIGHTLY_TOKEN` with write access to the repository.
