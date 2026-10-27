@@ -78,6 +78,19 @@ CHROME_EXTENSION_ID=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx   # the item's id from its 
 
 Publishing is a manual step; the nightly workflow still ships the unsigned `dist/vibex-chrome.zip` for load-unpacked install.
 
+### Releasing both at once
+
+`npm run release` bumps the version, builds, and ships to both stores via the scripts above (`scripts/release.mjs`). Defaults are conservative — Firefox **unlisted**, Chrome **draft** — and you escalate explicitly:
+
+```bash
+npm run release                                   # patch bump; FF unlisted + Chrome draft
+npm run release -- --bump minor                   # minor bump instead
+npm run release -- --firefox listed --chrome submit --push   # full public release + push
+npm run release -- --dry-run                       # print the steps without running them
+```
+
+`npm version` makes the bump a commit and tag (so it needs a clean working tree); `--push` pushes the commit and tag after a fully successful release. Other flags: `--version <x.y.z>`, `--no-bump`, `--no-firefox`, `--no-chrome`. If one store fails the other still runs; since the version is already bumped, retry the failed one with its own script (no second bump).
+
 ### Nightly builds
 
 `.forgejo/workflows/nightly.yml` builds every target on each push to `main` and on demand. It then replaces the `nightly` prerelease: the old release and its tag are deleted, and a new one is created on the built commit with `vibex.user.js`, `vibex-chrome.zip` and `vibex-firefox.zip` attached (`scripts/nightly-release.mjs`). It uses the automatic token Forgejo gives every run (`secrets.FORGEJO_TOKEN`). If that can't manage releases on your Forgejo instance, add a repository secret `NIGHTLY_TOKEN` with write access to the repository.
