@@ -1,7 +1,8 @@
 // Signs the built Firefox extension through addons.mozilla.org (AMO), so it can
 // be installed permanently in release Firefox instead of as a temporary add-on.
 //
-//   node scripts/sign-firefox.mjs [--channel unlisted|listed] [--source <zip>] [--no-source]
+//   node scripts/sign-firefox.mjs [--channel unlisted|listed]
+//     [--source <zip>] [--no-source] [--license <spdx>] [--amo-metadata <json>]
 //
 // Reads dist/firefox/ (run `npm run build -- --target=firefox` first; the
 // `sign:firefox` npm script does this for you) and uploads it to AMO.
@@ -18,12 +19,15 @@
 // build is bundled/minified. By default this uploads an archive of the committed
 // source (HEAD) built with `git archive`; override it with --source <zip> or skip
 // it with --no-source (e.g. to attach the source through the AMO web UI instead).
+// A listed version also needs a license: by default the package.json license is
+// sent as the SPDX slug; override with --license <slug> or pass a full metadata
+// file with --amo-metadata <json> (see the AMO "add-on submission" format).
 //
 // Credentials come from the environment, or a .env file in the project root
 // (generate them at https://addons.mozilla.org/developers/addon/api/key/):
 //   AMO_JWT_ISSUER / AMO_JWT_SECRET   (or WEB_EXT_API_KEY / WEB_EXT_API_SECRET)
 import { execFileSync } from "node:child_process";
-import { copyFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
 import webExt from "web-ext";
@@ -32,6 +36,7 @@ const SOURCE_DIR = "dist/firefox";
 const ARTIFACTS_DIR = "dist";
 const SIGNED_COPY = "dist/vibex-firefox.xpi";
 const SOURCE_ARCHIVE = "dist/vibex-source.zip";
+const METADATA_FILE = "dist/amo-metadata.json";
 
 // Load .env from the project root if present; real env vars (e.g. in CI) win.
 try { process.loadEnvFile(); } catch { /* no .env: use the environment as-is */ }
@@ -42,6 +47,8 @@ const args = process.argv.slice(2);
 let channel = "unlisted";
 let sourceArchive;      // explicit --source path
 let includeSource = true;
+let license;            // SPDX slug for listed versions (defaults to package.json)
+let metadataFile;       // explicit --amo-metadata path (full control)
 for (let i = 0; i < args.length; i++) {
     const a = args[i];
     if (a === "--channel") channel = args[++i];
@@ -49,6 +56,10 @@ for (let i = 0; i < args.length; i++) {
     else if (a === "--source") sourceArchive = args[++i];
     else if (a.startsWith("--source=")) sourceArchive = a.slice("--source=".length);
     else if (a === "--no-source") includeSource = false;
+    else if (a === "--license") license = args[++i];
+    else if (a.startsWith("--license=")) license = a.slice("--license=".length);
+    else if (a === "--amo-metadata") metadataFile = args[++i];
+    else if (a.startsWith("--amo-metadata=")) metadataFile = a.slice("--amo-metadata=".length);
     else { console.error(`Unknown argument: ${a}`); process.exit(2); }
 }
 if (channel !== "unlisted" && channel !== "listed") {
@@ -112,6 +123,32 @@ if (channel === "listed" && includeSource) {
     console.warn("--source is only used on the listed channel; ignoring it.");
 }
 
+/* ---------------------------- listing metadata ----------------------------- */
+
+// AMO rejects a listed version without a license. Send one (an SPDX slug such as
+// MIT, Apache-2.0, GPL-3.0-or-later); the rest of the listing is filled on AMO.
+let amoMetadata;
+if (channel === "listed") {
+    if (metadataFile) {
+        amoMetadata = metadataFile;
+        if (!existsSync(amoMetadata)) {
+            console.error(`AMO metadata file not found: ${amoMetadata}`);
+            process.exit(1);
+        }
+    } else {
+        const slug = license || JSON.parse(readFileSync("package.json", "utf8")).license;
+        if (!slug) {
+            console.error("No license for the listed version. Pass --license <SPDX slug> or set one in package.json.");
+            process.exit(1);
+        }
+        mkdirSync(ARTIFACTS_DIR, { recursive: true });
+        writeFileSync(METADATA_FILE, JSON.stringify({ version: { license: slug } }, null, 2));
+        amoMetadata = METADATA_FILE;
+    }
+} else if (metadataFile || license) {
+    console.warn("--license / --amo-metadata only apply to the listed channel; ignoring them.");
+}
+
 /* ---------------------------------- sign ----------------------------------- */
 
 // web-ext's package.json isn't exported, but it sits next to its resolved entry.
@@ -120,6 +157,7 @@ const webextVersion = JSON.parse(readFileSync(webextPkg, "utf8")).version;
 
 console.log(`Signing ${SOURCE_DIR} on the "${channel}" channel…`);
 if (uploadSourceCode) console.log(`Attaching source for review: ${uploadSourceCode}`);
+if (amoMetadata) console.log(`Listing metadata: ${amoMetadata}`);
 let result;
 try {
     result = await webExt.cmd.sign({
@@ -129,6 +167,7 @@ try {
         sourceDir: SOURCE_DIR,
         artifactsDir: ARTIFACTS_DIR,
         uploadSourceCode,
+        amoMetadata,
         webextVersion,
     });
 } catch (err) {
