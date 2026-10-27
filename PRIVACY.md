@@ -52,4 +52,4 @@ location with a new "Last updated" date.
 ## Contact
 
 Questions about this policy or the extension can be raised via the project's
-source repository.
+source repository, or by email at contact@jakeayy.ch.
