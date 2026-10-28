@@ -10,13 +10,13 @@ A client mod for X (Twitter) web, in the spirit of Vencord. It ships as a usersc
 
 ```bash
 npm install
-npm run build      # all targets, minified (CSS included)
+npm run build      # all targets; extensions minified (CSS included), userscript not
 npm run build -- --target=chrome   # or userscript / firefox, comma-separated
 npm run watch      # unminified rebuilds while developing
 npm run typecheck
 ```
 
-The build minifies JavaScript with esbuild and every `css` template with [Lightning CSS](https://lightningcss.dev/).
+The extension builds minify JavaScript with esbuild and every `css` template with [Lightning CSS](https://lightningcss.dev/). The userscript is left unminified, since Greasy Fork rejects minified code.
 
 | Target | Output | Install |
 |---|---|---|
@@ -184,7 +184,7 @@ export default definePlugin({
 
 Then add it to `src/plugins/index.ts`.
 
-- Write stylesheets as `css` tagged templates (`utils/css`), for `css:` and `addStyle()` alike. The build minifies each one with Lightning CSS and drops the tag. Interpolations work, except inside quoted CSS strings: such a template is left unminified.
+- Write stylesheets as `css` tagged templates (`utils/css`), for `css:` and `addStyle()` alike. The extension builds minify each one with Lightning CSS and drop the tag; the userscript keeps it as-is. Interpolations work, except inside quoted CSS strings: such a template is left unminified.
 - `start` and `stop` run live when the user toggles the plugin. Changing a setting restarts the plugin unless that setting has `restartNeeded: true`, which shows a "Reload needed" banner instead.
 - `startEarly: true` starts the plugin at document-start instead of DOMContentLoaded, before X's bundles run (no DOM yet). SponsorBegone uses it so X's very first requests are already intercepted.
 - `networkRules: { <rulesetId>: settings => boolean }` turns on a ruleset from `src/extension/rules/<id>.json` in extension builds (the userscript ignores it); keep the in-page interceptor too, so the userscript gets the same blocking.

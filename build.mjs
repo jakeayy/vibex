@@ -1,5 +1,5 @@
 // Builds VibeX for every target from the same source:
-//   dist/vibex.user.js     userscript (Tampermonkey / Violentmonkey)
+//   dist/vibex.user.js     userscript (Tampermonkey / Violentmonkey), unminified
 //   dist/chrome/           Chrome / Chromium extension (Manifest V3), + vibex-chrome.zip
 //   dist/firefox/          Firefox extension (Manifest V3), + vibex-firefox.zip
 //
@@ -214,7 +214,9 @@ const targets = {
         format: "iife",
         banner: { js: userscriptHeader },
         define: define("userscript"),
-        plugins: [minifyCssPlugin({ report: true })],
+        // Greasy Fork rejects minified code, so the userscript stays readable
+        // (JS and CSS alike); the extensions are still minified.
+        minify: false,
     }],
     chrome: () => extension("chrome"),
     firefox: () => extension("firefox"),
@@ -247,7 +249,7 @@ function extension(browser) {
     if (browser === "firefox") copyFileSync(LOGO, `${outdir}/logo.svg`);
     else renderChromeIcons(outdir);
     return [
-        { ...common, entryPoints: ["src/index.ts"], outfile: `${outdir}/vibex.js`, format: "iife", define: define(browser), plugins: [minifyCssPlugin({ report: false })] },
+        { ...common, entryPoints: ["src/index.ts"], outfile: `${outdir}/vibex.js`, format: "iife", define: define(browser), plugins: [minifyCssPlugin({ report: browser === "chrome" })] },
         { ...common, entryPoints: ["src/extension/bridge.ts"], outfile: `${outdir}/bridge.js`, format: "iife" },
         { ...common, entryPoints: ["src/extension/background.ts"], outfile: `${outdir}/background.js`, format: "iife" },
     ];
