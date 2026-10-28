@@ -93,7 +93,7 @@ npm run release -- --dry-run                       # print the steps without run
 
 ### Nightly builds
 
-`.forgejo/workflows/nightly.yml` builds every target on each push to `main` and on demand. It then replaces the `nightly` prerelease: the old release and its tag are deleted, and a new one is created on the built commit with `vibex.user.js`, `vibex-chrome.zip` and `vibex-firefox.zip` attached (`scripts/nightly-release.mjs`). It uses the automatic token Forgejo gives every run (`secrets.FORGEJO_TOKEN`). If that can't manage releases on your Forgejo instance, add a repository secret `NIGHTLY_TOKEN` with write access to the repository.
+`.github/workflows/nightly.yml` (GitHub) and `.forgejo/workflows/nightly.yml` (Forgejo) build every target on each push to `main` that touches the build (sources, assets, build config, dependencies — not docs) and on demand. Each then replaces the `nightly` prerelease: the old release and its tag are deleted, and a new one is created on the built commit with `vibex.user.js`, `vibex-chrome.zip` and `vibex-firefox.zip` attached (GitHub via `gh`, Forgejo via `scripts/nightly-release.mjs`). The userscript's `@updateURL`/`@downloadURL` point at `vibex.user.js` on the GitHub nightly. Nightlies append the run number to the version (`0.1.2` → `0.1.2.57`, via `VIBEX_BUILD`) so userscript managers pick each one up as an update; the next release (`0.1.3`) still sorts above them. The Forgejo workflow uses the automatic token Forgejo gives every run (`secrets.FORGEJO_TOKEN`). If that can't manage releases on your Forgejo instance, add a repository secret `NIGHTLY_TOKEN` with write access to the repository.
 
 ### What the extension adds
 

@@ -1,0 +1,65 @@
+# Builds every target (userscript, Chrome, Firefox) and publishes them as the
+# "nightly" prerelease, replacing the previous one. GitHub counterpart of
+# .forgejo/workflows/nightly.yml.
+name: Nightly
+
+on:
+  push:
+    branches: [main]
+    # Only files that change the build (docs etc. don't trigger a nightly).
+    paths:
+      - src/**
+      - assets/**
+      - build.mjs
+      - package.json
+      - package-lock.json
+      - tsconfig.json
+      - .github/workflows/nightly.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# A newer push supersedes a nightly still in progress.
+concurrency:
+  group: nightly
+  cancel-in-progress: true
+
+jobs:
+  nightly:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run build
+        env:
+          VIBEX_BUILD: ${{ github.run_number }}
+
+      # Deleting the release alone keeps the tag, which would pin the new one
+      # to the old commit, so the tag goes too.
+      - name: Replace the nightly release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete nightly --cleanup-tag --yes || true
+          gh release create nightly \
+            --target "$GITHUB_SHA" \
+            --prerelease \
+            --title "Nightly $(date -u +%F) (${GITHUB_SHA::7})" \
+            --notes "$(cat <<EOF
+          Automatic build of $GITHUB_SHA. Replaced by the next nightly.
+
+          | File | Install |
+          |---|---|
+          | \`vibex.user.js\` | Tampermonkey / Violentmonkey |
+          | \`vibex-chrome.zip\` | Unzip, then \`chrome://extensions\` → Developer mode → Load unpacked |
+          | \`vibex-firefox.zip\` | \`about:debugging\` → Load Temporary Add-on → pick the zip (unsigned, until restart) |
+          EOF
+          )" \
+            dist/vibex.user.js dist/vibex-chrome.zip dist/vibex-firefox.zip

@@ -13,12 +13,17 @@ import path from "node:path";
 import zlib from "node:zlib";
 
 const pkg = JSON.parse(readFileSync("package.json", "utf8"));
+// Nightlies append the CI run number (0.1.2 -> 0.1.2.57) so userscript managers
+// see each one as an update; a release (0.1.3) still sorts above them.
+const version = process.env.VIBEX_BUILD ? `${pkg.version}.${process.env.VIBEX_BUILD}` : pkg.version;
 const watch = process.argv.includes("--watch");
 const only = process.argv.find(a => a.startsWith("--target="))?.slice(9).split(",");
 
 const MATCHES = ["https://x.com/*", "https://twitter.com/*"];
 const RULES_DIR = "src/extension/rules";
 const LOGO = "assets/logo.svg";
+// The userscript attached to the GitHub nightly release (.github/workflows/nightly.yml).
+const USERSCRIPT_URL = "https://github.com/jakeayy/vibex/releases/download/nightly/vibex.user.js";
 // Chrome needs raster icons (MV3 ignores SVG); Firefox uses the SVG directly.
 const CHROME_ICON_SIZES = [16, 32, 48, 128];
 
@@ -128,13 +133,15 @@ function minifyCssPlugin({ report }) {
 const userscriptHeader = `// ==UserScript==
 // @name         VibeX
 // @namespace    https://github.com/vibex
-// @version      ${pkg.version}
+// @version      ${version}
 // @description  ${pkg.description}
 ${MATCHES.map(m => `// @match        ${m}`).join("\n")}
 // @run-at       document-start
 // @noframes
 // @grant        none
 // @inject-into  page
+// @updateURL    ${USERSCRIPT_URL}
+// @downloadURL  ${USERSCRIPT_URL}
 // ==/UserScript==
 `;
 
@@ -145,7 +152,7 @@ function manifest(browser) {
     const m = {
         manifest_version: 3,
         name: "VibeX",
-        version: pkg.version,
+        version,
         description: pkg.description,
         // VibeX itself runs in the page's own JS world, where X's webpack and
         // React live; the browser guarantees it starts before any page script.
@@ -194,7 +201,7 @@ const common = {
 };
 
 const define = target => ({
-    VIBEX_VERSION: JSON.stringify(pkg.version),
+    VIBEX_VERSION: JSON.stringify(version),
     VIBEX_BUILD_TIME: JSON.stringify(new Date().toISOString()),
     VIBEX_TARGET: JSON.stringify(target),
 });

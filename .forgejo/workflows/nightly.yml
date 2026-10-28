@@ -5,6 +5,16 @@ name: Nightly
 on:
   push:
     branches: [main]
+    # Only files that change the build (docs etc. don't trigger a nightly).
+    paths:
+      - src/**
+      - assets/**
+      - build.mjs
+      - package.json
+      - package-lock.json
+      - tsconfig.json
+      - scripts/nightly-release.mjs
+      - .forgejo/workflows/nightly.yml
   workflow_dispatch:
 
 jobs:
@@ -20,6 +30,8 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm run build
+        env:
+          VIBEX_BUILD: ${{ github.run_number }}
 
       - name: Replace the nightly release
         run: node scripts/nightly-release.mjs
