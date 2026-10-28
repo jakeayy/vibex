@@ -41,13 +41,15 @@ jobs:
         env:
           VIBEX_BUILD: ${{ github.run_number }}
 
-      # Deleting the release alone keeps the tag, which would pin the new one
-      # to the old commit, so the tag goes too.
+      # Deleting the release alone keeps the tag, and `gh release create` reuses
+      # an existing tag (ignoring --target), pinning the new one to the old
+      # commit. So the tag goes too, even when there's no release to delete.
       - name: Replace the nightly release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release delete nightly --cleanup-tag --yes || true
+          gh release delete nightly --yes || true
+          gh api -X DELETE "repos/$GITHUB_REPOSITORY/git/refs/tags/nightly" || true
           gh release create nightly \
             --target "$GITHUB_SHA" \
             --prerelease \
