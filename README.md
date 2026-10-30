@@ -4,6 +4,8 @@
 
 # VibeX
 
+<a href="https://addons.mozilla.org/addon/vibex-twitter/"><img src="assets/badges/firefox-addons.svg" alt="Get the add-on for Firefox" height="58"></a> <a href="https://chromewebstore.google.com/detail/vibex/kejejbjobidanhcljkalddfmmogaaacl"><img src="assets/badges/chrome-web-store.png" alt="Available in the Chrome Web Store" height="58"></a> <a href="https://greasyfork.org/scripts/602645-vibex"><img src="assets/badges/greasy-fork.svg" alt="Available on Greasy Fork" height="58"></a>
+
 A client mod for X (Twitter) web, in the spirit of Vencord. It ships as a userscript and as a browser extension for Chrome and Firefox, all built from the same source.
 
 ## Build & install

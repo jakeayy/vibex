@@ -48,6 +48,10 @@ const release = await call("POST", `${api}/releases`, {
     body: [
         `Automatic build of ${SHA}. Replaced by the next nightly.`,
         "",
+        "Stable versions:",
+        "",
+        '<a href="https://addons.mozilla.org/addon/vibex-twitter/"><img src="https://raw.githubusercontent.com/jakeayy/vibex/main/assets/badges/firefox-addons.svg" alt="Get the add-on for Firefox" height="58"></a> <a href="https://chromewebstore.google.com/detail/vibex/kejejbjobidanhcljkalddfmmogaaacl"><img src="https://raw.githubusercontent.com/jakeayy/vibex/main/assets/badges/chrome-web-store.png" alt="Available in the Chrome Web Store" height="58"></a> <a href="https://greasyfork.org/scripts/602645-vibex"><img src="https://raw.githubusercontent.com/jakeayy/vibex/main/assets/badges/greasy-fork.svg" alt="Available on Greasy Fork" height="58"></a>',
+        "",
         "| File | Install |",
         "|---|---|",
         "| `vibex.user.js` | Tampermonkey / Violentmonkey |",
